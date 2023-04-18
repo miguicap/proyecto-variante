@@ -5,7 +5,7 @@ pipeline {
   AWS_DEFAULT_REGION="us-east-1" 
   IMAGE_REPO_NAME="proyecto"
   IMAGE_TAG="latest"
-  REPOSITORY_URI = "${659026651741}.dkr.ecr.${us-east-1}.amazonaws.com/${proyecto}"
+  REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION-1}.amazonaws.com/${IMAGE_REPO_NAME}"
   }
   tools { 
         maven 'Maven_3_5_2'  
