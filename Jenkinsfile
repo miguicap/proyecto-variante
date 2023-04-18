@@ -1,5 +1,12 @@
 pipeline {
   agent any
+  environment {
+  AWS_ACCOUNT_ID="659026651741"
+  AWS_DEFAULT_REGION="us-east-1" 
+  IMAGE_REPO_NAME="proyecto"
+  IMAGE_TAG="latest"
+  REPOSITORY_URI = "${659026651741}.dkr.ecr.${us-east-1}.amazonaws.com/${proyecto}"
+  }
   tools { 
         maven 'Maven_3_5_2'  
     }
@@ -17,25 +24,32 @@ pipeline {
 				}
 			}
     }		
-	stage('Build') { 
-            steps { 
-               withDockerRegistry([credentialsId: "dockerlogin", url: ""]) {
-                 script{
-                 app =  docker.build("proyecto")
-                 }
-               }
-            }
-    }
-
-	stage('Push') {
-            steps {
-                script{
-                    docker.withRegistry('659026651741.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:aws-proyecto-credentials') {
-                    app.push("latest")
-                    }
-                }
-            }
-    	}
+	stage('Logging into AWS ECR') {
+ 		steps {
+ 			script {
+ 			sh "aws ecr get-login-password - region ${AWS_DEFAULT_REGION} | docker login - username AWS - password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+ 			}
+ 		}
+ 	}
+ 
+ 	// Building Docker images
+	stage('Building image') {
+ 		steps{
+ 			script {
+ 			dockerImage = docker.build "${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+ 			}
+ 		}
+ 	}
+ 
+ 	// Uploading Docker images into AWS ECR
+ 	stage('Pushing to ECR') {
+ 		steps{ 
+ 			script {
+ 			sh "docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:$IMAGE_TAG"
+ 			sh "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+ 			}
+ 		}
+ 	}
 	    
 	stage('Kubernetes Deployment of ASG Bugg Web Application') {
 	   steps {

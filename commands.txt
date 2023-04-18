@@ -42,4 +42,5 @@ eksctl
 terraform
 kubernetes-cli (kubectl)
 
-#
+#Si hay problemas de test con las imágenes por espacio hay que usar este comando:
+docker image prune
